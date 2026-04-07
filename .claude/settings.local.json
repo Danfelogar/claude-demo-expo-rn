@@ -1,8 +1,11 @@
 {
   "env": {
     "ANTHROPIC_BASE_URL": "https://openrouter.ai/api",
-    "ANTHROPIC_AUTH_TOKEN": "secret-key",
+    "ANTHROPIC_AUTH_TOKEN": "SECRET_KEY",
     "ANTHROPIC_API_KEY": "",
-    "ANTHROPIC_MODEL": "qwen/qwen3.6-plus:free"
+    "ANTHROPIC_MODEL": "qwen/qwen3.6-plus:free",
+    "ANTHROPIC_DEFAULT_SONNET_MODEL": "moonshotai/kimi-k2.5",
+    "ANTHROPIC_DEFAULT_OPUS_MODEL": "minimax/minimax-m2.7",
+    "ANTHROPIC_DEFAULT_HAIKU_MODEL": "deepseek/deepseek-v3.2"
   }
 }

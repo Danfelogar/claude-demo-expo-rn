@@ -1,168 +1,149 @@
 # Command: /feature-builder
 
-Orchestrate a complete React Native feature end-to-end using specialized subagents.
-You do not implement anything directly — you coordinate three agents and gate each
-phase on explicit approval.
+Orchestrate a complete React Native feature end-to-end.
+You coordinate planning, implementation, tests, and an optional performance audit —
+gating each phase on explicit approval.
 
 ---
 
 ## Before starting, ask me:
 
 1. **Feature description** — what does it do, what does the user experience?
-2. **Entry point** — how does the user reach this feature (tab, button, deep link)?
+2. **Entry point** — how does the user reach this (tab, button, deep link)?
 3. **Data source** — static, local state, or remote API?
-4. **Priority** — is there anything you want to finish today vs defer?
+4. **Priority** — anything to finish today vs defer?
 
 ---
 
-## Orchestration protocol
+## Phase 0 — Read, then plan
 
-### Phase 0 — Architecture (arch-agent)
+Before writing a single line, read:
+- `CLAUDE.md` — conventions and DO NOTs
+- `package.json` — what is actually installed (do not plan for missing libraries)
+- `app/` directory tree — current routing structure
+- `components/` and `hooks/` — what exists and can be reused
 
-Delegate to `arch-agent`:
+Then produce a plan using the format in `@.claude/rules/planning.md`.
 
-```
-Use the arch-agent subagent to plan this feature:
+The plan must include:
+- Phases with named goals, each independently deployable
+- Files to `create` / `modify` / `delete` per phase
+- New dependencies with Expo SDK 54 + New Architecture compatibility check
+- Reuse opportunities (existing components or hooks that cover part of the work)
+- Risks and open questions
 
-Feature: <description from user>
-Entry point: <entry point>
-Data: <data source>
-
-The agent must read CLAUDE.md, package.json, and the existing app/ and components/
-directories before producing the plan. Do not produce a plan from assumptions.
-```
-
-**Gate**: Present the plan to the developer. Do not proceed to Phase 1 until
-explicitly approved. Allow iteration on the plan ("adjust phase 2", "split phase 1").
+**Gate**: present the plan. Do not proceed to Phase 1 until explicitly approved.
+Allow iteration: "adjust phase 2", "split phase 1", "is there a simpler approach?".
 
 ---
 
-### Phase 1 — Implementation (main session)
+## Phase 1 — Implementation (one phase at a time)
 
-After plan approval, implement **one phase at a time**:
+After plan approval, implement one phase at a time.
 
-```
-Implementing Phase 1 of the approved plan.
-Following conventions from CLAUDE.md and .claude/rules/.
-```
+Active rules during implementation (load and follow):
+- `@.claude/rules/components.md` — for every new component
+- `@.claude/rules/navigation.md` — for every new screen or route change
+- `@.claude/rules/performance.md` — for any list, image, or animation
 
-Implementation rules (enforce these yourself):
-- Apply `@.claude/rules/components.md` for every new component
-- Apply `@.claude/rules/navigation.md` for every new screen or route change
-- Apply `@.claude/rules/performance.md` for any list, image, or animation
-- Use `Pressable` — never `TouchableOpacity`
-- Use `expo-image` — never RN core `<Image>`
-- Use `useThemeColor` — never hardcode colors
-- Use `StyleSheet.create` — never inline style objects for static styles
+Hard rules — enforce without being asked:
+- `Pressable` — never `TouchableOpacity`
+- `expo-image` — never RN core `<Image>`
+- `useThemeColor` — never hardcode colors
+- `StyleSheet.create` — never inline style objects for static styles
 - No `any` types
 
-**Gate between phases**: After each implementation phase, output:
+**Gate after each phase:**
 ```
 Phase N complete.
 Files created/modified: [list]
 Anything broken or incomplete: [yes/no + details]
 
-Ready for Phase N+1? Reply "yes" to continue or describe any changes needed.
+Ready for Phase N+1? Reply "yes" to continue or describe changes needed.
 ```
 
-Wait for explicit approval before starting the next implementation phase.
+Wait for explicit approval before the next phase.
 
 ---
 
-### Phase 2 — Tests (qa-agent)
+## Phase 2 — Tests (qa-agent)
 
-After all implementation phases are approved, delegate to `qa-agent`:
+After all implementation phases are approved:
 
 ```
 Use the qa-agent subagent to write tests for the feature just implemented.
 
-Files to test:
-<list every new file from the implementation phases>
+Files to test: <list every new file>
 
-Requirements:
 - Test every new component (render, interactions, error state, empty state)
 - Test every new hook (initial state, transitions, error case)
 - Run the tests and fix failures before reporting back
-- Do not modify source files — report any bugs found to the main session
+- Do not modify source files — report any bugs found here
 ```
 
-**Gate**: Present the qa-agent report. If it found bugs, open them as follow-up
-tasks rather than silently fixing them mid-orchestration.
+**Gate**: review the qa-agent report. If it found bugs, surface them as follow-up
+tasks — do not silently fix them mid-orchestration.
 
 ---
 
-### Phase 3 — Performance audit (perf-agent)
+## Phase 3 — Performance audit (perf-agent, optional)
 
-After tests pass, optionally delegate to `perf-agent`:
+After tests pass, ask: *"Run a performance audit? Recommended if the feature has lists or animations."*
 
+If confirmed:
 ```
-Use the perf-agent subagent to audit the newly implemented files for performance issues.
-
-Files to audit:
-<list every new screen and component>
-
+Use the perf-agent subagent to audit: <list new screens and components>
 Focus on: re-render causes, list performance, animation thread, memory cleanup.
 ```
 
-Ask the developer: *"Run a performance audit on the new code? (recommended for screens
-with lists or animations)"*
-
-Only run if developer confirms.
+If a 🔴 Critical issue is found, surface it immediately and ask whether to fix
+before marking the feature done.
 
 ---
 
 ## Final summary
 
-After all phases complete, output:
-
 ```
 ## Feature Complete: <feature name>
 
 ### Delivered
-- [ ] <screen or component 1> — <path>
-- [ ] <screen or component 2> — <path>
-- [ ] <hook> — <path>
+- [ ] <file> — <what it does>
 
 ### Tests
-- N test cases written
-- All passing ✅ / N failures ⚠️ (see qa-agent report)
+- N cases written — all passing ✅ / N failures ⚠️
 
 ### Performance
 - Audited ✅ / Skipped
 - N issues found (see perf-agent report)
 
-### Follow-up tasks identified
-- [bugs found by qa-agent]
-- [performance issues from perf-agent]
-- [open questions from arch-agent that were deferred]
+### Follow-up tasks
+- [bugs from qa-agent]
+- [perf issues from perf-agent]
+- [open questions deferred from planning]
 
-### What was NOT implemented (per plan scope)
-- [explicit list from arch-agent's "not covered" section]
+### Not implemented (out of scope)
+- [explicit list]
 ```
 
 ---
 
-## Failure modes to handle
+## Failure modes
 
-**arch-agent produces a plan that does not match the codebase**
-→ Ask the agent to re-read the specific file it got wrong and revise.
+**Plan does not match the actual codebase**
+→ Re-read the specific file that was wrong and revise the plan.
 
-**Implementation phase breaks the app**
-→ Stop. Do not continue to the next phase. Report the breakage and ask for a decision.
+**A phase breaks the app**
+→ Stop. Do not continue. Report and ask for a decision.
 
-**qa-agent finds a bug in source code**
-→ Do not fix it silently. Surface it in the final summary as a follow-up task.
-
-**perf-agent finds a Critical issue**
-→ Present it immediately. Ask whether to fix it before marking the feature done.
+**qa-agent finds a source bug**
+→ Do not fix silently. Add to follow-up tasks.
 
 ---
 
 ## DO NOT
 
-- Do not implement anything before the arch-agent plan is approved.
-- Do not proceed to Phase N+1 without explicit developer sign-off.
-- Do not run all phases in one shot without gates — the whole point of the
-  orchestrator is human checkpoints between phases.
-- Do not have the qa-agent modify source files.
-- Do not mark the feature complete if tests are failing.
+- Do not implement before the Phase 0 plan is approved.
+- Do not proceed to Phase N+1 without explicit sign-off.
+- Do not run all phases without gates.
+- Do not have qa-agent modify source files.
+- Do not mark complete if tests are failing.

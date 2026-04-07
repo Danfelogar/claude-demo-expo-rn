@@ -1,0 +1,30 @@
+{
+  "thinking": { "enabled": true },
+  "outputStyle": "explanatory",
+  "plansDirectory": ".claude/plans",
+  "permissions": {
+    "allow": [
+      "Bash(npm run *)",
+      "Bash(npx expo *)",
+      "Bash(npx jest *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git log *)",
+      "Bash(git status)",
+      "Bash(git diff *)",
+      "Edit(app/**)",
+      "Edit(components/**)",
+      "Edit(hooks/**)",
+      "Edit(constants/**)",
+      "Edit(scripts/**)",
+      "Edit(.claude/**)"
+    ],
+    "deny": [
+      "Bash(rm -rf *)",
+      "Edit(android/**)",
+      "Edit(ios/**)",
+      "Edit(.env*)",
+      "Edit(*.local.json)"
+    ]
+  }
+}
