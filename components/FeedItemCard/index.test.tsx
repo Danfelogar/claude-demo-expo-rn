@@ -14,8 +14,8 @@ jest.mock('expo-haptics', () => ({
 }));
 
 jest.mock('expo-image', () => ({
-  Image: ({ testID }: { testID?: string }) =>
-    require('react-native').View({ testID }),
+  Image: (props: Record<string, unknown>) =>
+    require('react').createElement(require('react-native').View, props),
 }));
 
 jest.mock('react-native-reanimated', () =>
